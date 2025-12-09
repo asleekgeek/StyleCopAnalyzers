@@ -49,7 +49,7 @@ class ClassName
         }
 
         [Theory]
-        [InlineData("\n", Skip = "https://github.com/DotNetAnalyzers/StyleCopAnalyzers/issues/3656")]
+        [InlineData("\n")]
         [InlineData("\r\n")]
         public async Task TestWrongCodeAsync(string lineEnding)
         {
@@ -88,7 +88,7 @@ class ClassName
     {
         int i = 5;
         int j = 6, k = 3;
-        if (true)
+        if(true)
         {
             i++;
         }
@@ -96,11 +96,10 @@ class ClassName
         {
             j++;
         }
-
         Foo(""a"", ""b"");
 
         Func<int, int, int> g = (c, d) => { c++;
-            return c + d; };
+        return c + d; };
     }
 }
 ".ReplaceLineEndings(lineEnding);
@@ -158,16 +157,19 @@ class Program
     }
 }
 ";
+            string fixedCode = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        {
+        }
+        ;
+    }
+}
+";
 
-            await new CSharpTest
-            {
-                TestCode = testCode,
-                FixedCode = testCode,
-
-                // A code fix is offered even though no changes are applied by it
-                NumberOfIncrementalIterations = 1,
-                NumberOfFixAllIterations = 1,
-            }.RunAsync(CancellationToken.None).ConfigureAwait(false);
+            await VerifyCSharpFixAsync(testCode, DiagnosticResult.EmptyDiagnosticResults, fixedCode, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }
